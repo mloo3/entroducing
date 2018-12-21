@@ -46,14 +46,28 @@ class MusicCommands:
         """Plays a song.
         Joins channel if bot is not in voice channel
         """
+        options = {
+            'default_search': 'auto',
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '256',
+            }],
+            # 'quiet': True,
+        }
         server = ctx.message.server
         voice_client = self.client.voice_client_in(server)
-        if voice_client is None:
-            # TODO automatically join
-            await self.client.say("join channel first")
-            return
+        # try to connect if not already in voice channel
+        if not voice_client: 
+            try_join = await ctx.invoke(self.join)
 
-        player = await voice_client.create_ytdl_player(song)
+            server = ctx.message.server
+            voice_client = self.client.voice_client_in(server)
+            # if not voice_client:
+            #     return
+
+        player = await voice_client.create_ytdl_player(song, ytdl_options=options)
         # players[server.id] = player
         player.start()
 
